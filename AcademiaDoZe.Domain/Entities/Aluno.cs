@@ -6,6 +6,8 @@ namespace AcademiaDoZe.Domain.Entities;
 
 public class Aluno : Pessoa
 {
+    public DateOnly DataMatricula { get; protected set; }
+
     public Aluno(
         int id,
         string nome,
@@ -15,7 +17,8 @@ public class Aluno : Pessoa
         Email email,
         Endereco endereco,
         Senha senha,
-        Arquivo foto)
+        Arquivo foto,
+        DateOnly dataMatricula)
         : base(
             id,
             nome,
@@ -27,5 +30,11 @@ public class Aluno : Pessoa
             senha,
             foto)
     {
+        if (dataMatricula > DateOnly.FromDateTime(DateTime.Today))
+            throw new ArgumentException(
+                "A data de matrícula não pode estar no futuro.",
+                nameof(dataMatricula));
+
+        DataMatricula = dataMatricula;
     }
 }

@@ -1,40 +1,35 @@
 // Pedro Henrique dos Santos
 
-using AcademiaDoZe.Domain.Enums;
-using AcademiaDoZe.Domain.ValueObjects;
-
 namespace AcademiaDoZe.Domain.Entities;
 
 public class Matricula : Entity
 {
     public Aluno Aluno { get; protected set; }
-    public MatriculaPlano Plano { get; protected set; }
     public DateOnly DataInicio { get; protected set; }
-    public DateOnly DataFinal { get; protected set; }
-    public string Objetivo { get; protected set; }
-    public MatriculaRestricoes Restricoes { get; protected set; }
-    public string ObservacoesRestricoes { get; protected set; }
-    public Arquivo? LaudoMedico { get; protected set; }
+    public DateOnly? DataFim { get; protected set; }
+
+    public bool Ativa => DataFim == null;
 
     public Matricula(
         int id,
         Aluno aluno,
-        MatriculaPlano plano,
         DateOnly dataInicio,
-        DateOnly dataFinal,
-        string objetivo,
-        MatriculaRestricoes restricoes,
-        string observacoesRestricoes,
-        Arquivo? laudoMedico)
+        DateOnly? dataFim = null)
         : base(id)
     {
-        Aluno = aluno;
-        Plano = plano;
+        Aluno = aluno ?? throw new ArgumentNullException(nameof(aluno));
+
+        if (dataInicio > DateOnly.FromDateTime(DateTime.Today))
+            throw new ArgumentException(
+                "A data de início da matrícula não pode estar no futuro.",
+                nameof(dataInicio));
+
+        if (dataFim.HasValue && dataFim < dataInicio)
+            throw new ArgumentException(
+                "A data de fim não pode ser anterior à data de início.",
+                nameof(dataFim));
+
         DataInicio = dataInicio;
-        DataFinal = dataFinal;
-        Objetivo = objetivo;
-        Restricoes = restricoes;
-        ObservacoesRestricoes = observacoesRestricoes;
-        LaudoMedico = laudoMedico;
+        DataFim = dataFim;
     }
 }

@@ -1,15 +1,13 @@
 // Pedro Henrique dos Santos
 
-using AcademiaDoZe.Domain.Enums;
 using AcademiaDoZe.Domain.ValueObjects;
 
 namespace AcademiaDoZe.Domain.Entities;
 
 public class Colaborador : Pessoa
 {
-    public DateOnly DataAdmissao { get; protected set; }
-    public ColaboradorTipo Tipo { get; protected set; }
-    public ColaboradorVinculo Vinculo { get; protected set; }
+    public string Cargo { get; protected set; }
+    public decimal Salario { get; protected set; }
 
     public Colaborador(
         int id,
@@ -21,9 +19,8 @@ public class Colaborador : Pessoa
         Endereco endereco,
         Senha senha,
         Arquivo foto,
-        DateOnly dataAdmissao,
-        ColaboradorTipo tipo,
-        ColaboradorVinculo vinculo)
+        string cargo,
+        decimal salario)
         : base(
             id,
             nome,
@@ -35,8 +32,17 @@ public class Colaborador : Pessoa
             senha,
             foto)
     {
-        DataAdmissao = dataAdmissao;
-        Tipo = tipo;
-        Vinculo = vinculo;
+        if (string.IsNullOrWhiteSpace(cargo))
+            throw new ArgumentException(
+                "O cargo é obrigatório.",
+                nameof(cargo));
+
+        if (salario < 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(salario),
+                "O salário não pode ser negativo.");
+
+        Cargo = cargo;
+        Salario = salario;
     }
 }
