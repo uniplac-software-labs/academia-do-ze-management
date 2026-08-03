@@ -23,13 +23,32 @@ public record Endereco
         string numero,
         string complemento)
     {
-        Cep = cep;
+        Cep = cep ?? throw new ArgumentNullException(nameof(cep));
+
+        if (string.IsNullOrWhiteSpace(pais))
+            throw new ArgumentException("O país é obrigatório.", nameof(pais));
+
+        if (string.IsNullOrWhiteSpace(estado))
+            throw new ArgumentException("O estado é obrigatório.", nameof(estado));
+
+        if (string.IsNullOrWhiteSpace(cidade))
+            throw new ArgumentException("A cidade é obrigatória.", nameof(cidade));
+
+        if (string.IsNullOrWhiteSpace(bairro))
+            throw new ArgumentException("O bairro é obrigatório.", nameof(bairro));
+
+        if (string.IsNullOrWhiteSpace(nomeLogradouro))
+            throw new ArgumentException("O logradouro é obrigatório.", nameof(nomeLogradouro));
+
+        if (string.IsNullOrWhiteSpace(numero))
+            throw new ArgumentException("O número é obrigatório.", nameof(numero));
+
         Pais = pais;
         Estado = estado;
         Cidade = cidade;
         Bairro = bairro;
         NomeLogradouro = nomeLogradouro;
         Numero = numero;
-        Complemento = complemento;
+        Complemento = complemento ?? string.Empty;
     }
 }

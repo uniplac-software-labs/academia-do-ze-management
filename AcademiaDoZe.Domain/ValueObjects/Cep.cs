@@ -8,6 +8,9 @@ public record Cep
 
     public Cep(string valor)
     {
+        if (string.IsNullOrWhiteSpace(valor))
+            throw new ArgumentException("O CEP é obrigatório.", nameof(valor));
+
         Valor = valor;
     }
 }

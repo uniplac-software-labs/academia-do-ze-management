@@ -8,6 +8,9 @@ public record Email
 
     public Email(string valor)
     {
+        if (string.IsNullOrWhiteSpace(valor))
+            throw new ArgumentException("O e-mail é obrigatório.", nameof(valor));
+
         Valor = valor;
     }
 }

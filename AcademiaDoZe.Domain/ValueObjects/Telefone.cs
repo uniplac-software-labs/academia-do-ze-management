@@ -8,6 +8,9 @@ public record Telefone
 
     public Telefone(string valor)
     {
+        if (string.IsNullOrWhiteSpace(valor))
+            throw new ArgumentException("O telefone é obrigatório.", nameof(valor));
+
         Valor = valor;
     }
 }

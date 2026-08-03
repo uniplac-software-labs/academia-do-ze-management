@@ -8,6 +8,9 @@ public record Senha
 
     public Senha(string valor)
     {
+        if (string.IsNullOrWhiteSpace(valor))
+            throw new ArgumentException("A senha é obrigatória.", nameof(valor));
+
         Valor = valor;
     }
 }

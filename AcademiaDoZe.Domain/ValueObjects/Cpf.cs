@@ -8,6 +8,9 @@ public record Cpf
 
     public Cpf(string valor)
     {
+        if (string.IsNullOrWhiteSpace(valor))
+            throw new ArgumentException("O CPF é obrigatório.", nameof(valor));
+
         Valor = valor;
     }
 }
