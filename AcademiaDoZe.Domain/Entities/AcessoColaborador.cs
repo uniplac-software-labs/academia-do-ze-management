@@ -1,25 +1,26 @@
-// Pedro Henrique dos Santos
+// Nome: [Pedro Henrique dos Santos]
+
+using AcademiaDoZe.Domain.Common;
+using System;
 
 namespace AcademiaDoZe.Domain.Entities;
 
 public class AcessoColaborador : Entity
 {
-    public Colaborador Colaborador { get; protected set; }
-    public DateTime DataAcesso { get; protected set; }
+    public Colaborador Colaborador { get; private set; }
+    public DateTime DataHora { get; private set; }
 
-    public AcessoColaborador(
-        int id,
-        Colaborador colaborador,
-        DateTime dataAcesso)
-        : base(id)
+    private AcessoColaborador(int id, Colaborador colaborador, DateTime dataHora) : base(id)
     {
-        Colaborador = colaborador ?? throw new ArgumentNullException(nameof(colaborador));
+        Colaborador = colaborador;
+        DataHora = dataHora;
+    }
 
-        if (dataAcesso > DateTime.Now)
-            throw new ArgumentException(
-                "A data de acesso não pode estar no futuro.",
-                nameof(dataAcesso));
+    public static Result<AcessoColaborador> Criar(int id, Colaborador? colaborador, DateTime dataHora)
+    {
+        if (colaborador == null)
+            return Result.Failure<AcessoColaborador>("AcessoColaborador.Colaborador", "O colaborador é obrigatório para registrar o acesso.");
 
-        DataAcesso = dataAcesso;
+        return Result.Success(new AcessoColaborador(id, colaborador, dataHora));
     }
 }

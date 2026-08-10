@@ -1,21 +1,29 @@
-// Pedro Henrique dos Santos
+// Nome: [Pedro Henrique dos Santos]
+
+using AcademiaDoZe.Domain.Common;
+using System.Collections.Generic;
 
 namespace AcademiaDoZe.Domain.ValueObjects;
 
 public record Arquivo
 {
-    public string Nome { get; init; }
-    public string Caminho { get; init; }
+    public byte[] Conteudo { get; }
 
-    public Arquivo(string nome, string caminho)
+    private Arquivo(byte[] conteudo)
     {
-        if (string.IsNullOrWhiteSpace(nome))
-            throw new ArgumentException("O nome do arquivo é obrigatório.", nameof(nome));
+        Conteudo = conteudo;
+    }
 
-        if (string.IsNullOrWhiteSpace(caminho))
-            throw new ArgumentException("O caminho do arquivo é obrigatório.", nameof(caminho));
+    public static Result<Arquivo> Criar(byte[]? conteudo)
+    {
+        var notifications = new List<Notification>();
 
-        Nome = nome;
-        Caminho = caminho;
+        if (conteudo == null || conteudo.Length == 0)
+        {
+            notifications.Add(new Notification("Arquivo", "O conteúdo do arquivo não pode ser vazio."));
+            return Result.Failure<Arquivo>(notifications);
+        }
+
+        return Result.Success(new Arquivo(conteudo));
     }
 }

@@ -1,16 +1,29 @@
-// Pedro Henrique dos Santos
+// Nome: [Pedro Henrique dos Santos]
+
+using AcademiaDoZe.Domain.Common;
+using System.Collections.Generic;
 
 namespace AcademiaDoZe.Domain.ValueObjects;
 
 public record Senha
 {
-    public string Valor { get; init; }
+    public string Valor { get; }
 
-    public Senha(string valor)
+    private Senha(string valor)
     {
-        if (string.IsNullOrWhiteSpace(valor))
-            throw new ArgumentException("A senha é obrigatória.", nameof(valor));
-
         Valor = valor;
+    }
+
+    public static Result<Senha> Criar(string? valor)
+    {
+        var notifications = new List<Notification>();
+
+        if (string.IsNullOrWhiteSpace(valor) || valor.Length < 6)
+        {
+            notifications.Add(new Notification("Senha", "A senha deve possuir no mínimo 6 caracteres."));
+            return Result.Failure<Senha>(notifications);
+        }
+
+        return Result.Success(new Senha(valor));
     }
 }
