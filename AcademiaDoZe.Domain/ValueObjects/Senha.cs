@@ -1,7 +1,6 @@
-// Nome: [Pedro Henrique dos Santos]
-
+// Pedro Henrique dos Santos
 using AcademiaDoZe.Domain.Common;
-using System.Collections.Generic;
+using AcademiaDoZe.Domain.Services;
 
 namespace AcademiaDoZe.Domain.ValueObjects;
 
@@ -14,16 +13,17 @@ public record Senha
         Valor = valor;
     }
 
-    public static Result<Senha> Criar(string? valor)
+    public static Result<Senha> Criar(string valor)
     {
-        var notifications = new List<Notification>();
+        if (NormalizacaoService.TextoVazioOuNulo(valor))
+            return Result<Senha>.Failure("Senha", "SENHA_OBRIGATORIO");
 
-        if (string.IsNullOrWhiteSpace(valor) || valor.Length < 6)
-        {
-            notifications.Add(new Notification("Senha", "A senha deve possuir no mínimo 6 caracteres."));
-            return Result.Failure<Senha>(notifications);
-        }
+        var textoLimpo = NormalizacaoService.LimparEspacos(valor);
+        if (textoLimpo.Length < 6 || !textoLimpo.Any(char.IsUpper))
+            return Result<Senha>.Failure("Senha", "SENHA_FORMATO");
 
-        return Result.Success(new Senha(valor));
+        return Result<Senha>.Success(new Senha(textoLimpo));
     }
+
+    public override string ToString() => Valor;
 }

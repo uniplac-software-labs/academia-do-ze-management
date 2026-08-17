@@ -1,20 +1,18 @@
-// Nome: [Pedro Henrique dos Santos]
-
+// Pedro Henrique dos Santos
 using AcademiaDoZe.Domain.Common;
 using AcademiaDoZe.Domain.Services;
 using AcademiaDoZe.Domain.ValueObjects;
-using System.Collections.Generic;
 
 namespace AcademiaDoZe.Domain.Entities;
 
-public sealed class Logradouro : Entity
+public sealed class Logradouro : Entity, IAggregateRoot
 {
-    public Cep Cep { get; private set; }
-    public string Nome { get; private set; }
-    public string Bairro { get; private set; }
-    public string Cidade { get; private set; }
-    public string Estado { get; private set; }
-    public string Pais { get; private set; }
+    public Cep Cep { get; }
+    public string Nome { get; }
+    public string Bairro { get; }
+    public string Cidade { get; }
+    public string Estado { get; }
+    public string Pais { get; }
 
     private Logradouro(int id, Cep cep, string nome, string bairro, string cidade, string estado, string pais) : base(id)
     {
@@ -26,30 +24,30 @@ public sealed class Logradouro : Entity
         Pais = pais;
     }
 
-    public static Result<Logradouro> Criar(int id, Cep? cep, string? nome, string? bairro, string? cidade, string? estado, string? pais)
+    public static Result<Logradouro> Criar(int id, string cep, string nome, string bairro, string cidade, string estado, string pais)
     {
         var notifications = new List<Notification>();
+        var cepResult = Cep.Criar(cep);
+        if (cepResult.IsFailure) notifications.AddRange(cepResult.Notifications);
 
-        if (cep == null) notifications.Add(new Notification("Logradouro.Cep", "O CEP é obrigatório."));
+        if (NormalizacaoService.TextoVazioOuNulo(nome)) notifications.Add(new Notification("Nome", "NOME_OBRIGATORIO"));
+        else nome = NormalizacaoService.LimparEspacos(nome);
 
-        var nomeNorm = NormalizadoService.LimparEspacos(nome);
-        if (string.IsNullOrWhiteSpace(nomeNorm)) notifications.Add(new Notification("Logradouro.Nome", "O nome do logradouro é obrigatório."));
+        if (NormalizacaoService.TextoVazioOuNulo(bairro)) notifications.Add(new Notification("Bairro", "BAIRRO_OBRIGATORIO"));
+        else bairro = NormalizacaoService.LimparEspacos(bairro);
 
-        var bairroNorm = NormalizadoService.LimparEspacos(bairro);
-        if (string.IsNullOrWhiteSpace(bairroNorm)) notifications.Add(new Notification("Logradouro.Bairro", "O bairro é obrigatório."));
+        if (NormalizacaoService.TextoVazioOuNulo(cidade)) notifications.Add(new Notification("Cidade", "CIDADE_OBRIGATORIO"));
+        else cidade = NormalizacaoService.LimparEspacos(cidade);
 
-        var cidadeNorm = NormalizadoService.LimparEspacos(cidade);
-        if (string.IsNullOrWhiteSpace(cidadeNorm)) notifications.Add(new Notification("Logradouro.Cidade", "A cidade é obrigatória."));
+        if (NormalizacaoService.TextoVazioOuNulo(estado)) notifications.Add(new Notification("Estado", "ESTADO_OBRIGATORIO"));
+        else estado = NormalizacaoService.ParaMaiusculo(NormalizacaoService.LimparTodosEspacos(estado));
 
-        var estadoNorm = NormalizadoService.ParaMaiusculo(NormalizadoService.LimparEspacos(estado));
-        if (string.IsNullOrWhiteSpace(estadoNorm) || estadoNorm.Length != 2) notifications.Add(new Notification("Logradouro.Estado", "O estado deve conter exatamente 2 letras (sigla)."));
+        if (NormalizacaoService.TextoVazioOuNulo(pais)) notifications.Add(new Notification("Pais", "PAIS_OBRIGATORIO"));
+        else pais = NormalizacaoService.LimparEspacos(pais);
 
-        var paisNorm = NormalizadoService.LimparEspacos(pais);
-        if (string.IsNullOrWhiteSpace(paisNorm)) notifications.Add(new Notification("Logradouro.Pais", "O país é obrigatório."));
+        if (notifications.Count != 0)
+            return Result<Logradouro>.Failure(notifications);
 
-        if (notifications.Count > 0)
-            return Result.Failure<Logradouro>(notifications);
-
-        return Result.Success(new Logradouro(id, cep!, nomeNorm, bairroNorm, cidadeNorm, estadoNorm, paisNorm));
+        return Result<Logradouro>.Success(new Logradouro(id, cepResult.Value!, nome, bairro, cidade, estado, pais));
     }
 }

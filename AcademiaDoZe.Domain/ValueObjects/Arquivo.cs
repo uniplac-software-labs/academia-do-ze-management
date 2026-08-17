@@ -1,7 +1,5 @@
-// Nome: [Pedro Henrique dos Santos]
-
+// Pedro Henrique dos Santos
 using AcademiaDoZe.Domain.Common;
-using System.Collections.Generic;
 
 namespace AcademiaDoZe.Domain.ValueObjects;
 
@@ -14,16 +12,15 @@ public record Arquivo
         Conteudo = conteudo;
     }
 
-    public static Result<Arquivo> Criar(byte[]? conteudo)
+    public static Result<Arquivo> Criar(byte[] conteudo)
     {
-        var notifications = new List<Notification>();
+        if (conteudo == null)
+            return Result<Arquivo>.Failure("Arquivo", "ARQUIVO_OBRIGATORIO");
 
-        if (conteudo == null || conteudo.Length == 0)
-        {
-            notifications.Add(new Notification("Arquivo", "O conteúdo do arquivo não pode ser vazio."));
-            return Result.Failure<Arquivo>(notifications);
-        }
+        const int tamanhoMaximoBytes = 15 * 1024 * 1024; // 15MB
+        if (conteudo.Length > tamanhoMaximoBytes)
+            return Result<Arquivo>.Failure("Arquivo", "ARQUIVO_TIPO_TAMANHO");
 
-        return Result.Success(new Arquivo(conteudo));
+        return Result<Arquivo>.Success(new Arquivo(conteudo));
     }
 }

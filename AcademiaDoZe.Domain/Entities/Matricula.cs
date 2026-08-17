@@ -1,17 +1,14 @@
-// Nome: [PEdro Henrique dos santos]
-
+// Pedro Henrique dos Santos
 using AcademiaDoZe.Domain.Common;
 using AcademiaDoZe.Domain.Enums;
 using AcademiaDoZe.Domain.Services;
 using AcademiaDoZe.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
 
 namespace AcademiaDoZe.Domain.Entities;
 
-public class Matricula : Entity
+public class Matricula : Entity, IAggregateRoot
 {
-    public Aluno AlunoMatricula { get; private set; }
+    public int AlunoId { get; private set; }
     public MatriculaPlano Plano { get; private set; }
     public DateOnly DataInicio { get; private set; }
     public DateOnly DataFim { get; private set; }
@@ -20,18 +17,9 @@ public class Matricula : Entity
     public string ObservacoesRestricoes { get; private set; }
     public Arquivo? LaudoMedico { get; private set; }
 
-    private Matricula(
-        int id,
-        Aluno alunoMatricula,
-        MatriculaPlano plano,
-        DateOnly dataInicio,
-        DateOnly dataFim,
-        string objetivo,
-        MatriculaRestricoes restricoesMedicas,
-        Arquivo? laudoMedico,
-        string observacoesRestricoes = "") : base(id)
+    private Matricula(int id, int alunoId, MatriculaPlano plano, DateOnly dataInicio, DateOnly dataFim, string objetivo, MatriculaRestricoes restricoesMedicas, Arquivo? laudoMedico, string observacoesRestricoes = "") : base(id)
     {
-        AlunoMatricula = alunoMatricula;
+        AlunoId = alunoId;
         Plano = plano;
         DataInicio = dataInicio;
         DataFim = dataFim;
@@ -41,50 +29,45 @@ public class Matricula : Entity
         ObservacoesRestricoes = observacoesRestricoes;
     }
 
-    public static Result<Matricula> Criar(
-        int id,
-        Aluno? aluno,
-        MatriculaPlano plano,
-        DateOnly dataInicio,
-        DateOnly dataFim,
-        string? objetivo,
-        MatriculaRestricoes restricoesMedicas,
-        Arquivo? laudoMedico,
-        string? observacoesRestricoes = "")
+    public static Result<Matricula> Criar(int id, Aluno aluno, MatriculaPlano plano, DateOnly dataInicio, string objetivo, MatriculaRestricoes restricoesMedicas, Arquivo? laudoMedico, string observacoesRestricoes = "")
     {
         var notifications = new List<Notification>();
 
         if (aluno == null)
         {
-            notifications.Add(new Notification("Matricula.Aluno", "O aluno é obrigatório."));
-            return Result.Failure<Matricula>(notifications);
+            notifications.Add(new Notification("Aluno", "ALUNO_INVALIDO"));
         }
-
-        if (dataFim <= dataInicio)
-            notifications.Add(new Notification("Matricula.DataFim", "A data final da matrícula deve ser posterior à data inicial."));
-
-        var objetivoNorm = NormalizadoService.LimparEspacos(objetivo);
-        var obsNorm = NormalizadoService.LimparEspacos(observacoesRestricoes);
-
-        // Regra do Domínio: Cálculo da Idade do Aluno
-        int idade = DateOnly.FromDateTime(DateTime.Today).Year - aluno.DataNascimento.Year;
-        if (aluno.DataNascimento > DateOnly.FromDateTime(DateTime.Today).AddYears(-idade)) idade--;
-
-        // Regra do Domínio: Alunos entre 12 e 16 anos precisam obrigatoriamente de Laudo Médico
-        if (idade >= 12 && idade <= 16 && laudoMedico == null)
+        else if (aluno.DataNascimento > DateOnly.FromDateTime(DateTime.Today.AddYears(-16)) && laudoMedico == null)
         {
-            notifications.Add(new Notification("Matricula.LaudoMedico", "Alunos de 12 a 16 anos exigem laudo médico obrigatório."));
+            notifications.Add(new Notification("LaudoMedico", "MENOR_16_LAUDO_OBRIGATORIO"));
         }
 
-        // Regra do Domínio: Alunos com restrições médicas registradas devem obrigatoriamente apresentar laudo/parecer médico
-        if (restricoesMedicas != MatriculaRestricoes.None && laudoMedico == null)
+        if (!Enum.IsDefined(plano)) notifications.Add(new Notification("Plano", "PLANO_INVALIDO"));
+        if (dataInicio == default) notifications.Add(new Notification("DataInicio", "DATA_INICIO_OBRIGATORIO"));
+
+        DateOnly dataFim = default;
+        if (Enum.IsDefined(plano) && dataInicio != default)
         {
-            notifications.Add(new Notification("Matricula.LaudoMedico", "Alunos com restrições de saúde exigem parecer/laudo médico obrigatório."));
+            dataFim = plano switch
+            {
+                MatriculaPlano.Mensal => dataInicio.AddMonths(1),
+                MatriculaPlano.Trimestral => dataInicio.AddMonths(3),
+                MatriculaPlano.Semestral => dataInicio.AddMonths(6),
+                MatriculaPlano.Anual => dataInicio.AddMonths(12),
+                _ => default
+            };
         }
 
-        if (notifications.Count > 0)
-            return Result.Failure<Matricula>(notifications);
+        if (NormalizacaoService.TextoVazioOuNulo(objetivo)) notifications.Add(new Notification("Objetivo", "OBJETIVO_OBRIGATORIO"));
+        else objetivo = NormalizacaoService.LimparEspacos(objetivo);
 
-        return Result.Success(new Matricula(id, aluno, plano, dataInicio, dataFim, objetivoNorm, restricoesMedicas, laudoMedico, obsNorm));
+        if (restricoesMedicas != MatriculaRestricoes.None && laudoMedico == null) notifications.Add(new Notification("LaudoMedico", "RESTRICOES_LAUDO_OBRIGATORIO"));
+
+        observacoesRestricoes = NormalizacaoService.LimparEspacos(observacoesRestricoes);
+
+        if (notifications.Count != 0) return Result<Matricula>.Failure(notifications);
+
+        var matricula = new Matricula(id, aluno!.Id, plano, dataInicio, dataFim, objetivo, restricoesMedicas, laudoMedico, observacoesRestricoes);
+        return Result<Matricula>.Success(matricula);
     }
 }

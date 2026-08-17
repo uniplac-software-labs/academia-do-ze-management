@@ -1,8 +1,6 @@
-// Nome: [Pedro Henrique dos Santos]
-
+// Pedro Henrique dos Santos
 using AcademiaDoZe.Domain.Common;
 using AcademiaDoZe.Domain.Services;
-using System.Collections.Generic;
 
 namespace AcademiaDoZe.Domain.ValueObjects;
 
@@ -15,17 +13,17 @@ public record Cep
         Valor = valor;
     }
 
-    public static Result<Cep> Criar(string? valor)
+    public static Result<Cep> Criar(string valor)
     {
-        var notifications = new List<Notification>();
-        var valorNormalizado = NormalizadoService.LimparEDigitos(valor);
+        if (NormalizacaoService.TextoVazioOuNulo(valor))
+            return Result<Cep>.Failure("Cep", "CEP_OBRIGATORIO");
 
-        if (string.IsNullOrWhiteSpace(valorNormalizado) || valorNormalizado.Length != 8)
-        {
-            notifications.Add(new Notification("Cep", "O CEP deve possuir exatamente 8 dígitos numéricos."));
-            return Result.Failure<Cep>(notifications);
-        }
+        var textoLimpo = NormalizacaoService.LimparEDigitos(valor);
+        if (textoLimpo.Length != 8)
+            return Result<Cep>.Failure("Cep", "CEP_DIGITOS");
 
-        return Result.Success(new Cep(valorNormalizado));
+        return Result<Cep>.Success(new Cep(textoLimpo));
     }
+
+    public override string ToString() => Valor;
 }

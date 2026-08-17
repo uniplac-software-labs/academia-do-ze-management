@@ -1,11 +1,6 @@
-﻿// Nome: [Pedro Henrique dos Santos]
-
-using System;
-
+﻿// Pedro Henrique dos Santos
 namespace AcademiaDoZe.Domain.Exceptions;
 
-public class DomainException : Exception
+public sealed class DomainException(string message) : Exception(message)
 {
-    public DomainException(string message) : base(message) { }
-    public DomainException(string message, Exception innerException) : base(message, innerException) { }
 }

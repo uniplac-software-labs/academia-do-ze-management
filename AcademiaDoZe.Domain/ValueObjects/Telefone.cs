@@ -1,8 +1,6 @@
-// Nome: [Pedro Henrique dos Santos]
-
+// Pedro Henrique dos Santos
 using AcademiaDoZe.Domain.Common;
 using AcademiaDoZe.Domain.Services;
-using System.Collections.Generic;
 
 namespace AcademiaDoZe.Domain.ValueObjects;
 
@@ -15,17 +13,17 @@ public record Telefone
         Valor = valor;
     }
 
-    public static Result<Telefone> Criar(string? valor)
+    public static Result<Telefone> Criar(string valor)
     {
-        var notifications = new List<Notification>();
-        var valorNormalizado = NormalizadoService.LimparEDigitos(valor);
+        if (NormalizacaoService.TextoVazioOuNulo(valor))
+            return Result<Telefone>.Failure("Telefone", "TELEFONE_OBRIGATORIO");
 
-        if (string.IsNullOrWhiteSpace(valorNormalizado) || valorNormalizado.Length < 10 || valorNormalizado.Length > 11)
-        {
-            notifications.Add(new Notification("Telefone", "O telefone deve conter entre 10 e 11 dígitos com DDD."));
-            return Result.Failure<Telefone>(notifications);
-        }
+        var textoLimpo = NormalizacaoService.LimparEDigitos(valor);
+        if (textoLimpo.Length != 11)
+            return Result<Telefone>.Failure("Telefone", "TELEFONE_DIGITOS");
 
-        return Result.Success(new Telefone(valorNormalizado));
+        return Result<Telefone>.Success(new Telefone(textoLimpo));
     }
+
+    public override string ToString() => Valor;
 }

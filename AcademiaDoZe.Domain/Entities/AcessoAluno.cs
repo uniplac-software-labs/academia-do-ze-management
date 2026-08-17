@@ -1,26 +1,32 @@
-// Nome: [Pedro Henrique dos Santos]
-
+// Pedro Henrique dos Santos
 using AcademiaDoZe.Domain.Common;
-using System;
 
 namespace AcademiaDoZe.Domain.Entities;
 
-public class AcessoAluno : Entity
+public class AcessoAluno : Entity, IAggregateRoot
 {
-    public Aluno Aluno { get; private set; }
+    public int AlunoId { get; private set; }
     public DateTime DataHora { get; private set; }
 
-    private AcessoAluno(int id, Aluno aluno, DateTime dataHora) : base(id)
+    private AcessoAluno(int id, int alunoId, DateTime dataHora) : base(id)
     {
-        Aluno = aluno;
+        AlunoId = alunoId;
         DataHora = dataHora;
     }
 
-    public static Result<AcessoAluno> Criar(int id, Aluno? aluno, DateTime dataHora)
+    public static Result<AcessoAluno> Criar(int id, Aluno aluno, DateTime dataHora)
     {
-        if (aluno == null)
-            return Result.Failure<AcessoAluno>("AcessoAluno.Aluno", "O aluno é obrigatório para registrar o acesso.");
+        var notifications = new List<Notification>();
 
-        return Result.Success(new AcessoAluno(id, aluno, dataHora));
+        if (aluno == null)
+            notifications.Add(new Notification("Aluno", "ALUNO_INVALIDO"));
+
+        if (dataHora.TimeOfDay < new TimeSpan(6, 0, 0) || dataHora.TimeOfDay > new TimeSpan(22, 0, 0))
+            notifications.Add(new Notification("DataHora", "DATA_HORA_INTERVALO_INVALIDO"));
+
+        if (notifications.Count != 0)
+            return Result<AcessoAluno>.Failure(notifications);
+
+        return Result<AcessoAluno>.Success(new AcessoAluno(id, aluno!.Id, dataHora));
     }
 }

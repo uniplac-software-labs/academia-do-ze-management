@@ -1,41 +1,39 @@
-// Nome: [Pedro Henrique dos Santos]
-
+// Pedro Henrique dos Santos
 using AcademiaDoZe.Domain.Common;
 using AcademiaDoZe.Domain.Entities;
 using AcademiaDoZe.Domain.Services;
-using System.Collections.Generic;
 
 namespace AcademiaDoZe.Domain.ValueObjects;
 
 public record Endereco
 {
-    public Logradouro Logradouro { get; }
+    public int LogradouroId { get; }
     public string Numero { get; }
     public string Complemento { get; }
 
-    private Endereco(Logradouro logradouro, string numero, string complemento)
+    private Endereco(int logradouroId, string numero, string complemento)
     {
-        Logradouro = logradouro;
+        LogradouroId = logradouroId;
         Numero = numero;
         Complemento = complemento;
     }
 
-    public static Result<Endereco> Criar(Logradouro? logradouro, string? numero, string? complemento)
+    public static Result<Endereco> Criar(Logradouro logradouro, string numero, string complemento)
     {
         var notifications = new List<Notification>();
-
         if (logradouro == null)
-            notifications.Add(new Notification("Endereco.Logradouro", "O logradouro é obrigatório."));
+            notifications.Add(new Notification("Endereco", "LOGRADOURO_OBRIGATORIO"));
 
-        var numeroNorm = NormalizadoService.LimparEspacos(numero);
-        if (string.IsNullOrWhiteSpace(numeroNorm))
-            notifications.Add(new Notification("Endereco.Numero", "O número é obrigatório."));
+        if (NormalizacaoService.TextoVazioOuNulo(numero))
+            notifications.Add(new Notification("Numero", "NUMERO_OBRIGATORIO"));
+        else
+            numero = NormalizacaoService.LimparEspacos(numero);
 
-        var complementoNorm = NormalizadoService.LimparEspacos(complemento);
+        complemento = NormalizacaoService.LimparEspacos(complemento);
 
-        if (notifications.Count > 0)
-            return Result.Failure<Endereco>(notifications);
+        if (notifications.Count != 0)
+            return Result<Endereco>.Failure(notifications);
 
-        return Result.Success(new Endereco(logradouro!, numeroNorm, complementoNorm));
+        return Result<Endereco>.Success(new Endereco(logradouro!.Id, numero, complemento));
     }
 }

@@ -1,26 +1,32 @@
-// Nome: [Pedro Henrique dos Santos]
-
+// Pedro Henrique dos Santos
 using AcademiaDoZe.Domain.Common;
-using System;
 
 namespace AcademiaDoZe.Domain.Entities;
 
-public class AcessoColaborador : Entity
+public class AcessoColaborador : Entity, IAggregateRoot
 {
-    public Colaborador Colaborador { get; private set; }
+    public int ColaboradorId { get; private set; }
     public DateTime DataHora { get; private set; }
 
-    private AcessoColaborador(int id, Colaborador colaborador, DateTime dataHora) : base(id)
+    private AcessoColaborador(int id, int colaboradorId, DateTime dataHora) : base(id)
     {
-        Colaborador = colaborador;
+        ColaboradorId = colaboradorId;
         DataHora = dataHora;
     }
 
-    public static Result<AcessoColaborador> Criar(int id, Colaborador? colaborador, DateTime dataHora)
+    public static Result<AcessoColaborador> Criar(int id, Colaborador colaborador, DateTime dataHora)
     {
-        if (colaborador == null)
-            return Result.Failure<AcessoColaborador>("AcessoColaborador.Colaborador", "O colaborador é obrigatório para registrar o acesso.");
+        var notifications = new List<Notification>();
 
-        return Result.Success(new AcessoColaborador(id, colaborador, dataHora));
+        if (colaborador == null)
+            notifications.Add(new Notification("Colaborador", "COLABORADOR_INVALIDO"));
+
+        if (dataHora.TimeOfDay < new TimeSpan(6, 0, 0) || dataHora.TimeOfDay > new TimeSpan(22, 0, 0))
+            notifications.Add(new Notification("DataHora", "DATA_HORA_INTERVALO_INVALIDO"));
+
+        if (notifications.Count != 0)
+            return Result<AcessoColaborador>.Failure(notifications);
+
+        return Result<AcessoColaborador>.Success(new AcessoColaborador(id, colaborador!.Id, dataHora));
     }
 }

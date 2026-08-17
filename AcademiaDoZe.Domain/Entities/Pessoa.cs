@@ -1,7 +1,5 @@
-// Nome: [Pedro Henrique dos Santos]
-
+// Pedro Henrique dos Santos
 using AcademiaDoZe.Domain.ValueObjects;
-using System;
 
 namespace AcademiaDoZe.Domain.Entities;
 
@@ -14,9 +12,18 @@ public abstract class Pessoa : Entity
     public Email Email { get; protected set; }
     public Endereco Endereco { get; protected set; }
     public Senha Senha { get; protected set; }
-    public Arquivo? Foto { get; protected set; }
+    public Arquivo Foto { get; protected set; }
 
-    protected Pessoa(int id, string nome, Cpf cpf, DateOnly dataNascimento, Telefone telefone, Email email, Endereco endereco, Senha senha, Arquivo? foto) : base(id)
+    protected Pessoa(
+        int id,
+        string nome,
+        Cpf cpf,
+        DateOnly dataNascimento,
+        Telefone telefone,
+        Email email,
+        Endereco endereco,
+        Senha senha,
+        Arquivo foto) : base(id)
     {
         Nome = nome;
         Cpf = cpf;

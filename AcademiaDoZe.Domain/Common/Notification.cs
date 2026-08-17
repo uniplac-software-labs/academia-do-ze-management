@@ -1,5 +1,4 @@
-﻿// Nome: [Pedro Henrique dos Santos]
-
+﻿// Pedro Henrique dos Santos
 namespace AcademiaDoZe.Domain.Common;
 
-public record Notification(string Key, string Message);
+public record Notification(string Propriedade, string Mensagem);

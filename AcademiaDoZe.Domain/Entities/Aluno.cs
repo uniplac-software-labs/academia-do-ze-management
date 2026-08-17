@@ -1,58 +1,59 @@
-// Nome: [PEdro Henrique dos Santos]
-
+// Pedro Henrique dos Santos
 using AcademiaDoZe.Domain.Common;
 using AcademiaDoZe.Domain.Services;
 using AcademiaDoZe.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
 
 namespace AcademiaDoZe.Domain.Entities;
 
-public class Aluno : Pessoa
+public class Aluno : Pessoa, IAggregateRoot
 {
-    private Aluno(int id, string nome, Cpf cpf, DateOnly dataNascimento, Telefone telefone, Email email, Endereco endereco, Senha senha, Arquivo? foto)
-        : base(id, nome, cpf, dataNascimento, telefone, email, endereco, senha, foto)
+    private Aluno(int id, string nome, Cpf cpf, DateOnly dataNascimento, Telefone telefone, Email email, Endereco endereco, Senha senha, Arquivo foto)
+        : base(id, nome, cpf, dataNascimento, telefone, email, endereco, senha, foto) { }
+
+    public static Result<Aluno> Criar(int id, string nome, string cpf, DateOnly dataNascimento, string telefone, string email, Logradouro endereco, string numero, string complemento, string senha, Arquivo foto)
     {
-    }
+        var notifications = new List<Notification>();
 
-    public static Result<Aluno> Criar(
-        int id,
-        string? nome,
-        Cpf? cpf,
-        DateOnly dataNascimento,
-        Telefone? telefone,
-        Email? email,
-        Endereco? endereco,
-        Senha? senha,
-        Arquivo? foto = null)
-    {
-        var listaErros = new List<Notification>();
+        if (NormalizacaoService.TextoVazioOuNulo(nome))
+            notifications.Add(new Notification("Nome", "NOME_OBRIGATORIO"));
+        else
+            nome = NormalizacaoService.LimparEspacos(nome);
 
-        var nomeNorm = NormalizadoService.LimparEspacos(nome);
-        if (string.IsNullOrWhiteSpace(nomeNorm))
-            listaErros.Add(new Notification("Aluno.Nome", "O nome é obrigatório."));
+        if (dataNascimento == default)
+            notifications.Add(new Notification("DataNascimento", "DATA_NASCIMENTO_OBRIGATORIO"));
+        else if (dataNascimento > DateOnly.FromDateTime(DateTime.Today.AddYears(-12)))
+            notifications.Add(new Notification("DataNascimento", "DATA_NASCIMENTO_MINIMA_INVALIDA"));
 
-        if (cpf == null)
-            listaErros.Add(new Notification("Aluno.Cpf", "O CPF é obrigatório."));
+        var cpfResult = Cpf.Criar(cpf);
+        if (cpfResult.IsFailure) notifications.AddRange(cpfResult.Notifications);
 
-        if (dataNascimento > DateOnly.FromDateTime(DateTime.Today))
-            listaErros.Add(new Notification("Aluno.DataNascimento", "A data de nascimento não pode ser no futuro."));
+        var telefoneResult = Telefone.Criar(telefone);
+        if (telefoneResult.IsFailure) notifications.AddRange(telefoneResult.Notifications);
 
-        if (telefone == null)
-            listaErros.Add(new Notification("Aluno.Telefone", "O telefone é obrigatório."));
+        var emailResult = Email.Criar(email);
+        if (emailResult.IsFailure) notifications.AddRange(emailResult.Notifications);
 
-        if (email == null)
-            listaErros.Add(new Notification("Aluno.Email", "O e-mail é obrigatório."));
+        var senhaResult = Senha.Criar(senha);
+        if (senhaResult.IsFailure) notifications.AddRange(senhaResult.Notifications);
 
-        if (endereco == null)
-            listaErros.Add(new Notification("Aluno.Endereco", "O endereço é obrigatório."));
+        var enderecoResult = Endereco.Criar(endereco, numero, complemento);
+        if (enderecoResult.IsFailure) notifications.AddRange(enderecoResult.Notifications);
 
-        if (senha == null)
-            listaErros.Add(new Notification("Aluno.Senha", "A senha é obrigatória."));
+        if (notifications.Count != 0)
+            return Result<Aluno>.Failure(notifications);
 
-        if (listaErros.Count > 0)
-            return Result.Failure<Aluno>(listaErros);
+        var aluno = new Aluno(
+            id,
+            nome,
+            cpfResult.Value!,
+            dataNascimento,
+            telefoneResult.Value!,
+            emailResult.Value!,
+            enderecoResult.Value!,
+            senhaResult.Value!,
+            foto
+        );
 
-        return Result.Success(new Aluno(id, nomeNorm, cpf!, dataNascimento, telefone!, email!, endereco!, senha!, foto));
+        return Result<Aluno>.Success(aluno);
     }
 }
