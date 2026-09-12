@@ -19,6 +19,20 @@ public class LogradouroInfrastructureTests : TestBase
         _repository = new LogradouroRepository(ConnectionString, DatabaseType);
     }
 
+    internal static async Task<Logradouro> CriarEInserirLogradouroAsync(LogradouroRepository repository)
+    {
+        var logradouro = Logradouro.Criar(
+            0,
+            GerarCep(),
+            "Rua de Teste",
+            "Centro",
+            "Campinas",
+            "SP",
+            "Brasil").Value!;
+
+        return await repository.Adicionar(logradouro);
+    }
+
     [Fact]
     public async Task Adicionar_E_ObterPorId_DeveRetornarLogradouroComSucesso()
     {

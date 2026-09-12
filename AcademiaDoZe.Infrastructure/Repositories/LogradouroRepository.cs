@@ -8,7 +8,7 @@ using AcademiaDoZe.Domain.Repositories;
 using AcademiaDoZe.Domain.ValueObjects;
 using AcademiaDoZe.Infrastructure.Data;
 using AcademiaDoZe.Infrastructure.Exceptions;
-
+using System.Linq;
 namespace AcademiaDoZe.Infrastructure.Repositories;
 
 public class LogradouroRepository : BaseRepository, ILogradouroRepository
@@ -206,17 +206,33 @@ public class LogradouroRepository : BaseRepository, ILogradouroRepository
 
     private static Logradouro MapToDomain(IDataRecord reader)
     {
-        int id = reader.GetValue<int>("id_logradouro");
-        string cep = reader.GetValue<string>("cep");
-        string nome = reader.GetValue<string>("nome");
-        string bairro = reader.GetValue<string>("bairro");
-        string cidade = reader.GetValue<string>("cidade");
-        string estado = reader.GetValue<string>("estado");
-        string pais = reader.GetValue<string>("pais");
+        int id = Convert.ToInt32(reader["id_logradouro"]);
+        string cep = Convert.ToString(reader["cep"]) ?? string.Empty;
+        string nome = Convert.ToString(reader["nome"]) ?? string.Empty;
+        string bairro = Convert.ToString(reader["bairro"]) ?? string.Empty;
+        string cidade = Convert.ToString(reader["cidade"]) ?? string.Empty;
+        string estado = Convert.ToString(reader["estado"]) ?? string.Empty;
+        string pais = Convert.ToString(reader["pais"]) ?? string.Empty;
 
         var result = Logradouro.Criar(id, cep, nome, bairro, cidade, estado, pais);
         if (result.IsFailure)
             throw new InfrastructureException($"Falha ao reconstituir entidade Logradouro com ID {id}.");
+
+        return result.Value!;
+    }
+    public static Logradouro Map(System.Data.Common.DbDataReader reader, string nomeColumn = "nome")
+    {
+        int id = reader.GetInt32Value("id_logradouro");
+        string cep = reader.GetStringValue("cep");
+        string nome = reader.GetStringValue(nomeColumn);
+        string bairro = reader.GetStringValue("bairro");
+        string cidade = reader.GetStringValue("cidade");
+        string estado = reader.GetStringValue("estado");
+        string pais = reader.GetStringValue("pais");
+
+        var result = Logradouro.Criar(id, cep, nome, bairro, cidade, estado, pais);
+        if (result.IsFailure)
+            throw new InfrastructureException("ERRO_MAPEAMENTO_LOGRADOURO", $"Erro ao mapear logradouro ID {id}: {string.Join(", ", result.Notifications.Select(n => n.Mensagem))}");
 
         return result.Value!;
     }

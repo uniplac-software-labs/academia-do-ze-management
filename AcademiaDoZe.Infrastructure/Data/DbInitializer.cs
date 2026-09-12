@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AcademiaDoZe.Infrastructure.Exceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
+using MySqlConnector;
 
 namespace AcademiaDoZe.Infrastructure.Data;
 
@@ -13,26 +14,49 @@ public static class DbInitializer
 {
     public static async Task InitializeAsync(DatabaseType dbType, string connectionString, CancellationToken cancellationToken = default)
     {
-        string scriptName = dbType == DatabaseType.Sqlite ? "script_sqlite.sql" : "script_sqlserver.sql";
+        string scriptName = dbType switch
+        {
+            DatabaseType.Sqlite => "script_sqlite.sql",
+            DatabaseType.SqlServer => "script_sqlserver.sql",
+            DatabaseType.MySql => "script_mysql.sql",
+            _ => throw new ArgumentOutOfRangeException(nameof(dbType))
+        };
         string scriptContent = ReadEmbeddedScript(scriptName);
 
         try
         {
-            if (dbType == DatabaseType.Sqlite)
+            switch (dbType)
             {
-                using var connection = new SqliteConnection(connectionString);
-                await connection.OpenAsync(cancellationToken);
-                using var command = connection.CreateCommand();
-                command.CommandText = scriptContent;
-                await command.ExecuteNonQueryAsync(cancellationToken);
-            }
-            else
-            {
-                using var connection = new SqlConnection(connectionString);
-                await connection.OpenAsync(cancellationToken);
-                using var command = connection.CreateCommand();
-                command.CommandText = scriptContent;
-                await command.ExecuteNonQueryAsync(cancellationToken);
+                case DatabaseType.Sqlite:
+                    using (var connection = new SqliteConnection(connectionString))
+                    {
+                        await connection.OpenAsync(cancellationToken);
+                        using var command = connection.CreateCommand();
+                        command.CommandText = scriptContent;
+                        await command.ExecuteNonQueryAsync(cancellationToken);
+                    }
+                    break;
+                case DatabaseType.SqlServer:
+                    using (var connection = new SqlConnection(connectionString))
+                    {
+                        await connection.OpenAsync(cancellationToken);
+                        using var command = connection.CreateCommand();
+                        command.CommandText = scriptContent;
+                        await command.ExecuteNonQueryAsync(cancellationToken);
+                    }
+                    break;
+                case DatabaseType.MySql:
+                    using (var connection = new MySqlConnection(connectionString))
+                    {
+                        await connection.OpenAsync(cancellationToken);
+                        foreach (var statement in scriptContent.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        {
+                            using var command = connection.CreateCommand();
+                            command.CommandText = statement;
+                            await command.ExecuteNonQueryAsync(cancellationToken);
+                        }
+                    }
+                    break;
             }
         }
         catch (Exception ex)
