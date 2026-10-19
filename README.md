@@ -1,4 +1,4 @@
-# Academia do Zé
+# Academia do Zé - By Pedro Henrique dos Santos
 
 Academic project developed during the Software Engineering course.
 
