@@ -15,5 +15,6 @@ public partial class AppShell : Shell
     private static void RegisterRoutes()
     {
         Routing.RegisterRoute("logradouro", typeof(LogradouroPage));
+        Routing.RegisterRoute("colaborador", typeof(ColaboradorPage));
     }
 }
