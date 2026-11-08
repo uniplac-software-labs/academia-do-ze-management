@@ -81,11 +81,6 @@ public partial class DashboardListViewModel : BaseViewModel
     [RelayCommand]
     private async Task NavigateToColaboradoresAsync() => await Shell.Current.GoToAsync("//colaboradores");
 
-    // A seção abaixo ainda não possui página no Shell; por enquanto apenas informa o usuário.
-
     [RelayCommand]
-    private Task NavigateToMatriculasAsync() => EmBreveAsync("Matrículas");
-
-    private static Task EmBreveAsync(string secao) =>
-        Shell.Current.DisplayAlertAsync("Em breve", $"A seção {secao} ainda não foi implementada.", "OK");
+    private async Task NavigateToMatriculasAsync() => await Shell.Current.GoToAsync("//matriculas");
 }
