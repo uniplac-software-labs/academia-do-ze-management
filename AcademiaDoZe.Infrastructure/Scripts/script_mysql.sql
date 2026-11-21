@@ -53,3 +53,17 @@ CREATE TABLE IF NOT EXISTS tb_matricula (
     laudo_medico LONGBLOB NULL,
     CONSTRAINT FK_matricula_aluno FOREIGN KEY (aluno_id) REFERENCES tb_aluno (id_aluno)
 ) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS tb_acesso_aluno (
+    id_acesso_aluno INT AUTO_INCREMENT PRIMARY KEY,
+    aluno_id INT NOT NULL,
+    data_hora DATETIME NOT NULL,
+    CONSTRAINT FK_acesso_aluno_aluno FOREIGN KEY (aluno_id) REFERENCES tb_aluno (id_aluno)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS tb_acesso_colaborador (
+    id_acesso_colaborador INT AUTO_INCREMENT PRIMARY KEY,
+    colaborador_id INT NOT NULL,
+    data_hora DATETIME NOT NULL,
+    CONSTRAINT FK_acesso_colaborador_colaborador FOREIGN KEY (colaborador_id) REFERENCES tb_colaborador (id_colaborador)
+) ENGINE = InnoDB;

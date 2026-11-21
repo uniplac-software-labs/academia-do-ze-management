@@ -77,3 +77,29 @@ IF NOT EXISTS (SELECT *
             CONSTRAINT FK_matricula_aluno FOREIGN KEY (aluno_id) REFERENCES [dbo].[tb_aluno] ([id_aluno])
         );
     END
+
+IF NOT EXISTS (SELECT *
+               FROM   sys.objects
+               WHERE  object_id = OBJECT_ID(N'[dbo].[tb_acesso_aluno]')
+                      AND type IN (N'U'))
+    BEGIN
+        CREATE TABLE [dbo].[tb_acesso_aluno] (
+            [id_acesso_aluno] INT       IDENTITY (1, 1) NOT NULL PRIMARY KEY,
+            [aluno_id]        INT       NOT NULL,
+            [data_hora]       DATETIME2 NOT NULL,
+            CONSTRAINT FK_acesso_aluno_aluno FOREIGN KEY (aluno_id) REFERENCES [dbo].[tb_aluno] ([id_aluno])
+        );
+    END
+
+IF NOT EXISTS (SELECT *
+               FROM   sys.objects
+               WHERE  object_id = OBJECT_ID(N'[dbo].[tb_acesso_colaborador]')
+                      AND type IN (N'U'))
+    BEGIN
+        CREATE TABLE [dbo].[tb_acesso_colaborador] (
+            [id_acesso_colaborador] INT       IDENTITY (1, 1) NOT NULL PRIMARY KEY,
+            [colaborador_id]        INT       NOT NULL,
+            [data_hora]             DATETIME2 NOT NULL,
+            CONSTRAINT FK_acesso_colaborador_colaborador FOREIGN KEY (colaborador_id) REFERENCES [dbo].[tb_colaborador] ([id_colaborador])
+        );
+    END

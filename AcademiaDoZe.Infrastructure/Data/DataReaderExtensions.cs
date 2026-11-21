@@ -33,4 +33,15 @@ public static partial class DataReaderExtensionsV2
         int ordinal = reader.GetOrdinal(columnName);
         return reader.IsDBNull(ordinal) ? null : (byte[])reader.GetValue(ordinal);
     }
+
+    public static DateTime GetDateTimeValue(this DbDataReader reader, string columnName)
+    {
+        var value = reader.GetValue(reader.GetOrdinal(columnName));
+        return value switch
+        {
+            DateTime dt => dt,
+            string s => DateTime.Parse(s, System.Globalization.CultureInfo.InvariantCulture),
+            _ => Convert.ToDateTime(value, System.Globalization.CultureInfo.InvariantCulture)
+        };
+    }
 }

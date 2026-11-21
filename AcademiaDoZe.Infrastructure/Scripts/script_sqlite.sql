@@ -55,3 +55,17 @@ CREATE TABLE IF NOT EXISTS tb_matricula (
     laudo_medico BLOB,
     FOREIGN KEY (aluno_id) REFERENCES tb_aluno (id_aluno)
 );
+
+CREATE TABLE IF NOT EXISTS tb_acesso_aluno (
+    id_acesso_aluno INTEGER PRIMARY KEY AUTOINCREMENT,
+    aluno_id INTEGER NOT NULL,
+    data_hora TEXT NOT NULL,
+    FOREIGN KEY (aluno_id) REFERENCES tb_aluno (id_aluno)
+);
+
+CREATE TABLE IF NOT EXISTS tb_acesso_colaborador (
+    id_acesso_colaborador INTEGER PRIMARY KEY AUTOINCREMENT,
+    colaborador_id INTEGER NOT NULL,
+    data_hora TEXT NOT NULL,
+    FOREIGN KEY (colaborador_id) REFERENCES tb_colaborador (id_colaborador)
+);
