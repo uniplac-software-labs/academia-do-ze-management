@@ -41,6 +41,13 @@
         <ShellContent ContentTemplate="{DataTemplate views:MatriculaListPage}" Route="matriculas" />
     </FlyoutItem>
 
+    <FlyoutItem Title="Controle de Acesso">
+        <FlyoutItem.Icon>
+            <FontImageSource FontFamily="MaterialIcons" Glyph="&#xe897;" Color="{AppThemeBinding Light=#212121, Dark=White}" />
+        </FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:AcessoPage}" Route="acesso" />
+    </FlyoutItem>
+
     <FlyoutItem Title="Configurações">
         <FlyoutItem.Icon>
             <FontImageSource FontFamily="MaterialIcons" Glyph="&#xe8b8;" Color="{AppThemeBinding Light=#212121, Dark=White}" />
